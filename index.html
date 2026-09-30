@@ -1,0 +1,303 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Modulo Transceptor CAN - TJA1042TK</title>
+
+<script
+  src="https://jspm.dev/@spectrum-web-components/bundle/elements.js"
+  type="module" async
+></script>
+
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;700&family=Source+Sans+3:wght@400;600;700&display=swap">
+
+<style>
+  :root {
+    --bg: #0a0a0c;
+    --surface: #14151a;
+    --border: #2a2b31;
+    --text: #f5f3ee;
+    --text-dim: #9a9691;
+    --text-faint: #6f6b66;
+    --accent: #ff7a45;
+    --accent-hover: #e85d2a;
+  }
+  body { margin: 0; font-family: 'Source Sans 3', -apple-system, 'Segoe UI', sans-serif; background: var(--bg); color: var(--text); }
+  h1, h2, .brand, .stat-num, .num-mark { font-family: 'Space Grotesk', sans-serif; }
+  sp-theme { display: block; }
+  .wrap { max-width: 1160px; margin: 0 auto; padding: 0 32px; }
+  .section { padding: 88px 0; border-bottom: 1px solid var(--border); position: relative; }
+  .section-head { display: flex; justify-content: space-between; align-items: baseline; margin-bottom: 40px; }
+  .num-mark { font-size: 58px; font-weight: 700; color: var(--border); line-height: 1; }
+  .eyebrow { font-size: 12px; font-weight: 700; letter-spacing: .1em; text-transform: uppercase; color: var(--accent); }
+
+  .navbar { position: sticky; top: 0; background: rgba(10,10,12,0.85); backdrop-filter: blur(8px); display: flex; justify-content: space-between; align-items: center; padding: 20px 32px; border-bottom: 1px solid var(--border); z-index: 10; }
+  .navbar .brand { font-weight: 700; font-size: 16px; letter-spacing: .02em; }
+  .navbar nav { display: flex; gap: 32px; }
+  .navbar a { font-size: 14px; font-weight: 600; color: var(--text-dim); text-decoration: none; transition: color .15s ease; }
+  .navbar a:hover { color: var(--accent); }
+
+  .hero { display: flex; gap: 64px; align-items: center; overflow: hidden; }
+  .hero-copy { flex: 1; display: flex; flex-direction: column; gap: 20px; }
+  h1 { font-size: 46px; line-height: 1.1; margin: 0; font-weight: 700; }
+  .hero p { font-size: 17px; color: var(--text-dim); line-height: 1.6; max-width: 480px; margin: 0; }
+  .hero-actions { display: flex; gap: 16px; align-items: center; margin-top: 6px; flex-wrap: wrap; }
+  .hero-visual { flex: 1; position: relative; display: flex; align-items: center; justify-content: center; }
+  .glow { position: absolute; width: 520px; height: 520px; border-radius: 50%; background: radial-gradient(circle, rgba(255,122,69,0.16), rgba(255,122,69,0) 70%); pointer-events: none; }
+  .hero-visual img { position: relative; z-index: 1; max-width: 340px; width: 100%; filter: drop-shadow(0 30px 40px rgba(0,0,0,0.45)); }
+
+  .tab-photo { height: 360px; margin-top: 24px; display: flex; align-items: center; justify-content: center; }
+  .tab-photo img { max-height: 100%; max-width: 100%; object-fit: contain; }
+
+  .stats { display: grid; grid-template-columns: repeat(4, minmax(0,1fr)); gap: 1px; background: var(--border); }
+  .stat { background: var(--bg); padding: 0 32px 0 0; display: flex; flex-direction: column; gap: 10px; }
+  .stat:first-child { padding-left: 0; }
+  .stat-line { height: 2px; width: 32px; background: var(--accent); }
+  .stat-num { font-size: 32px; font-weight: 700; }
+  .stat-label { font-size: 12px; font-weight: 700; letter-spacing: .06em; text-transform: uppercase; color: var(--text-dim); }
+
+  .cards { display: grid; grid-template-columns: repeat(4, minmax(0,1fr)); gap: 20px; }
+  .card { border: 1px solid var(--border); border-radius: 6px; padding: 26px; background: var(--surface); transition: transform .18s ease, border-color .18s ease; }
+  .card:hover { transform: translateY(-4px); border-color: var(--accent); }
+  .card .idx { font-size: 13px; color: var(--text-faint); margin-bottom: 10px; }
+  .card strong { display: block; font-size: 17px; margin-bottom: 8px; }
+  .card p { font-size: 14px; color: var(--text-dim); line-height: 1.5; margin: 0; }
+
+  table.pinout { width: 100%; border-collapse: collapse; margin-top: 8px; font-size: 14px; }
+  table.pinout th, table.pinout td { text-align: left; padding: 10px 12px; border-bottom: 1px solid var(--border); }
+  table.pinout th { color: var(--text-dim); font-weight: 600; text-transform: uppercase; font-size: 11px; letter-spacing: .05em; }
+  table.pinout td { color: var(--text); }
+  table.pinout td.dim { color: var(--text-dim); }
+
+  .photo-steps { padding-left: 0; margin: 0; list-style: none; max-width: 720px; counter-reset: step; }
+  .photo-steps li { display: flex; gap: 20px; padding: 18px 0; border-bottom: 1px solid var(--border); }
+  .photo-steps li::before { counter-increment: step; content: counter(step, decimal-leading-zero); font-family: 'Space Grotesk', sans-serif; font-weight: 700; color: var(--accent); font-size: 15px; flex-shrink: 0; width: 32px; }
+  .photo-steps li div { line-height: 1.6; color: var(--text-dim); font-size: 15px; }
+  .photo-steps li strong { color: var(--text); }
+
+  .contact-grid { display: grid; grid-template-columns: repeat(2, minmax(0,1fr)); gap: 18px; max-width: 600px; }
+  .contact-grid label { display: block; font-size: 13px; font-weight: 600; margin-bottom: 8px; color: var(--text-dim); }
+  .contact-grid input, .contact-grid textarea {
+    width: 100%; padding: 12px 14px; border: 1px solid var(--border); border-radius: 4px;
+    font-family: inherit; font-size: 14px; box-sizing: border-box; background: var(--surface); color: var(--text);
+  }
+  .contact-grid input:focus, .contact-grid textarea:focus { outline: none; border-color: var(--accent); }
+  .contact-full { grid-column: 1 / -1; }
+
+  footer { display: flex; justify-content: space-between; padding: 40px 0; font-size: 13px; color: var(--text-faint); flex-wrap: wrap; gap: 8px; }
+  .btn-primary { --spectrum-accent-background-color-default: var(--accent); --spectrum-accent-background-color-hover: var(--accent-hover); }
+</style>
+</head>
+<body>
+
+<sp-theme scale="large" color="dark" lang="es">
+
+<div class="navbar">
+  <div class="brand">CAN TRANSCEIVER</div>
+  <nav>
+    <a href="#specs">Especificaciones</a>
+    <a href="#aplicaciones">Aplicaciones</a>
+    <a href="#pinout">Pinout</a>
+    <a href="#contacto">Contacto</a>
+  </nav>
+</div>
+
+<div class="wrap">
+
+  <!-- HERO -->
+  <section class="section hero">
+    <div class="hero-copy">
+      <sp-badge variant="neutral">TJA1042TK &middot; CiA 303-1</sp-badge>
+      <div class="eyebrow" style="margin-top: 4px;">Modulo transceptor CAN</div>
+      <h1>La interfaz entre tu controlador y el bus CAN</h1>
+      <p>
+        Basado en el TJA1042 de NXP, transceptor CAN de alta velocidad de tercera generacion.
+        Conector DB9 con pinout estandar CiA 303-1, listo para integrarse en redes CAN
+        industriales y automotrices.
+      </p>
+      <div class="hero-actions">
+        <sp-button variant="accent" class="btn-primary" onclick="document.getElementById('specs').scrollIntoView({behavior:'smooth'})">Ver especificaciones</sp-button>
+        <sp-button variant="secondary" outline onclick="document.getElementById('pinout').scrollIntoView({behavior:'smooth'})">Ver pinout</sp-button>
+      </div>
+    </div>
+    <div class="hero-visual">
+      <div class="glow"></div>
+      <img src="photos/frontal.png" alt="Modulo transceptor CAN TJA1042TK, vista frontal">
+    </div>
+  </section>
+
+  <!-- SPECS -->
+  <section class="section" id="specs">
+    <div class="stats">
+      <div class="stat"><div class="stat-line"></div><div class="stat-num">5 Mbit/s</div><div class="stat-label">Velocidad de datos (CAN FD)</div></div>
+      <div class="stat"><div class="stat-line"></div><div class="stat-num">4.5-5.5 V</div><div class="stat-label">Alimentacion (VCC)</div></div>
+      <div class="stat"><div class="stat-line"></div><div class="stat-num">8 kV</div><div class="stat-label">Proteccion ESD (bus)</div></div>
+      <div class="stat"><div class="stat-line"></div><div class="stat-num">-40 a 150 &deg;C</div><div class="stat-label">Temperatura de operacion</div></div>
+    </div>
+    <p style="color: var(--text-dim); max-width: 720px; margin-top: 32px; line-height: 1.6; font-size: 15px;">
+      El chip TJA1042 cumple ISO 11898-2:2016 y SAE J2284-1 a J2284-5, con muy bajo consumo en modo
+      standby (wake-up por host o por bus), deteccion de subtension en VCC y VIO, proteccion termica,
+      y comportamiento pasivo en el bus cuando el modulo no esta alimentado. Los pines de bus soportan
+      hasta 58V de robustez ante transitorios automotrices.
+    </p>
+  </section>
+
+  <!-- APLICACIONES -->
+  <section class="section" id="aplicaciones">
+    <div class="section-head">
+      <div>
+        <div class="eyebrow">Aplicaciones</div>
+        <h2>Donde encaja este modulo</h2>
+      </div>
+      <div class="num-mark">01</div>
+    </div>
+    <div class="cards">
+      <div class="card"><div class="idx">01</div><strong>Automatizacion industrial</strong><p>PLCs, sensores y actuadores comunicados por bus CAN en planta.</p></div>
+      <div class="card"><div class="idx">02</div><strong>Diagnostico automotriz</strong><p>Lectura y depuracion de redes CAN de vehiculos (OBD, ECUs).</p></div>
+      <div class="card"><div class="idx">03</div><strong>Robotica</strong><p>Comunicacion entre controladores de motor y unidades de control.</p></div>
+      <div class="card"><div class="idx">04</div><strong>Desarrollo embebido</strong><p>Prototipado de nodos CAN para microcontroladores propios.</p></div>
+    </div>
+  </section>
+
+  <!-- DETALLE DEL PRODUCTO: pestanas con las fotos reales -->
+  <section class="section">
+    <div class="section-head">
+      <div>
+        <div class="eyebrow">Detalle del producto</div>
+        <h2>El modulo desde todos los angulos</h2>
+      </div>
+      <div class="num-mark">02</div>
+    </div>
+    <sp-tabs selected="f1">
+      <sp-tab value="f1" label="TJA1042TK - Detalle"></sp-tab>
+      <sp-tab value="f2" label="CAN Transceiver 2 - Detalle"></sp-tab>
+      <sp-tab value="f3" label="CAN Transceiver 2 (lateral)"></sp-tab>
+      <sp-tab value="f4" label="TJA1042TK (conector)"></sp-tab>
+      <sp-tab value="f5" label="CAN Transceiver 2 (conector)"></sp-tab>
+
+      <sp-tab-panel value="f1">
+        <div class="tab-photo"><img src="photos/foto1-anotada.jpg" alt="Modulo TJA1042TK con componentes senalados y su funcion"></div>
+      </sp-tab-panel>
+      <sp-tab-panel value="f2">
+        <div class="tab-photo"><img src="photos/foto2-anotada.jpg" alt="Modulo CAN Transceiver 2 con componentes senalados y su funcion"></div>
+      </sp-tab-panel>
+      <sp-tab-panel value="f3">
+        <div class="tab-photo"><img src="photos/foto3-transceiver2-lateral.jpg" alt="Vista lateral de la version CAN Transceiver 2"></div>
+      </sp-tab-panel>
+      <sp-tab-panel value="f4">
+        <div class="tab-photo"><img src="photos/foto4-tja1042-conector.jpg" alt="Vista del conector DB9 del modulo TJA1042TK"></div>
+      </sp-tab-panel>
+      <sp-tab-panel value="f5">
+        <div class="tab-photo"><img src="photos/foto5-transceiver2-conector.jpg" alt="Vista del conector DB9 de la version CAN Transceiver 2"></div>
+      </sp-tab-panel>
+    </sp-tabs>
+  </section>
+
+  <!-- PINOUT -->
+  <section class="section" id="pinout">
+    <div class="section-head">
+      <div>
+        <div class="eyebrow">Integracion</div>
+        <h2>Pinout</h2>
+      </div>
+      <div class="num-mark">03</div>
+    </div>
+    <sp-accordion>
+      <sp-accordion-item label="Version estandar (TJA1042TK)" open>
+        <table class="pinout">
+          <thead><tr><th>Pin</th><th>Funcion</th></tr></thead>
+          <tbody>
+            <tr><td>CANTX</td><td class="dim">Entrada de transmision (logica, hacia el transceptor)</td></tr>
+            <tr><td>CANRX</td><td class="dim">Salida de recepcion (logica, desde el transceptor)</td></tr>
+            <tr><td>5V</td><td class="dim">Alimentacion VCC</td></tr>
+            <tr><td>3V3</td><td class="dim">Referencia / alimentacion logica</td></tr>
+            <tr><td>GND</td><td class="dim">Tierra</td></tr>
+            <tr><td>NC</td><td class="dim">Sin conexion (resto de pines del header)</td></tr>
+          </tbody>
+        </table>
+      </sp-accordion-item>
+      <sp-accordion-item label="Version 2 (con control STB/Enable)">
+        <table class="pinout">
+          <thead><tr><th>Pin</th><th>Funcion</th></tr></thead>
+          <tbody>
+            <tr><td>STB</td><td class="dim">Standby: entra en modo de bajo consumo</td></tr>
+            <tr><td>TX / RX</td><td class="dim">Logica de transmision y recepcion</td></tr>
+            <tr><td>5V / VIO / 3V3</td><td class="dim">Alimentacion y referencia logica seleccionable</td></tr>
+            <tr><td>Jumper H1</td><td class="dim">DISABLE / STBY / ENABLE: selecciona el modo de operacion</td></tr>
+            <tr><td>GND</td><td class="dim">Tierra</td></tr>
+          </tbody>
+        </table>
+      </sp-accordion-item>
+      <sp-accordion-item label="Conector DB9 (CiA 303-1)">
+        <table class="pinout">
+          <thead><tr><th>Pin DB9</th><th>Senal</th></tr></thead>
+          <tbody>
+            <tr><td>2</td><td class="dim">CAN_L</td></tr>
+            <tr><td>3</td><td class="dim">GND</td></tr>
+            <tr><td>7</td><td class="dim">CAN_H</td></tr>
+          </tbody>
+        </table>
+      </sp-accordion-item>
+    </sp-accordion>
+  </section>
+
+  <!-- GUIA DE FOTOS PARA EL FOTOGRAFO -->
+  <section class="section" id="fotos">
+    <div class="section-head">
+      <div>
+        <div class="eyebrow">Referencia interna</div>
+        <h2>Guia para fotografiar el producto</h2>
+      </div>
+      <div class="num-mark">04</div>
+    </div>
+    <p style="color: var(--text-dim); max-width: 640px; margin-bottom: 8px;">Para que cualquier fotografo que se incorpore al equipo mantenga el mismo estandar visual:</p>
+    <ol class="photo-steps">
+      <li><div><strong>Fondo blanco liso.</strong> Cartulina o papel blanco curvado (infinity curve) para que no se vea el borde entre mesa y fondo.</div></li>
+      <li><div><strong>Deja margen alrededor.</strong> El producto no debe tocar los bordes del encuadre; deja fondo visible en las 4 direcciones para que el recorte digital funcione bien despues.</div></li>
+      <li><div><strong>Toma cenital.</strong> Camara perpendicular a la placa, directamente desde arriba, sin distorsion de perspectiva.</div></li>
+      <li><div><strong>Dos luces difusas a 45 grados.</strong> Nunca usar el flash directo: crea sombras duras y brillos en los componentes metalicos.</div></li>
+      <li><div><strong>Tripode o apoyo firme.</strong> Evita el desenfoque por movimiento de la mano al presionar el boton.</div></li>
+      <li><div><strong>Varios angulos:</strong> vista frontal, vista 3/4 mostrando el conector DB9, y un acercamiento a los jumpers de control.</div></li>
+      <li><div><strong>Revisar antes de subir.</strong> Buscar sombras duras o reflejos en superficies metalicas y corregir la iluminacion si aparecen.</div></li>
+    </ol>
+  </section>
+
+  <!-- CONTACTO -->
+  <section class="section" id="contacto">
+    <div class="section-head">
+      <div>
+        <div class="eyebrow">Hablemos</div>
+        <h2>Contacto</h2>
+      </div>
+      <div class="num-mark">05</div>
+    </div>
+    <p style="color: var(--text-dim); max-width: 640px; margin-bottom: 24px;">Escribenos si tienes preguntas sobre este modulo o quieres cotizar unidades.</p>
+    <div class="contact-grid">
+      <div>
+        <label>Nombre</label>
+        <input type="text" placeholder="Tu nombre" />
+      </div>
+      <div>
+        <label>Correo</label>
+        <input type="email" placeholder="tu@correo.com" />
+      </div>
+      <div class="contact-full">
+        <label>Mensaje</label>
+        <textarea rows="4" placeholder="Cuentanos que necesitas"></textarea>
+      </div>
+    </div>
+    <sp-button variant="accent" class="btn-primary" style="margin-top: 20px;">Enviar mensaje</sp-button>
+  </section>
+
+  <footer>
+    <div>Modulo transceptor CAN &middot; chip NXP TJA1042TK &middot; CiA 303-1</div>
+    <div>Construido con Adobe Spectrum Web Components</div>
+  </footer>
+
+</div>
+</sp-theme>
+
+</body>
+</html>
