@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Modulo Transceptor CAN - TJA1042TK</title>
+<title>CAN Transceiver 2 · Módulo transceptor CAN (TJA1042TK)</title>
 
 <script
   src="https://jspm.dev/@spectrum-web-components/bundle/elements.js"
@@ -11,13 +11,13 @@
 ></script>
 
 <link rel="preconnect" href="https://fonts.googleapis.com">
-<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;700&family=Source+Sans+3:wght@400;600;700&display=swap">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;700&family=Source+Sans+3:wght@400;600;700&family=JetBrains+Mono:wght@400;500&display=swap">
 
 <style>
   :root {
-    --bg: #0a0a0c;
-    --surface: #14151a;
-    --border: #2a2b31;
+    --bg: #000000;
+    --surface: #050506;
+    --border: #1b1b1f;
     --text: #f5f3ee;
     --text-dim: #9a9691;
     --text-faint: #6f6b66;
@@ -33,7 +33,7 @@
   .num-mark { font-size: 58px; font-weight: 700; color: var(--border); line-height: 1; }
   .eyebrow { font-size: 12px; font-weight: 700; letter-spacing: .1em; text-transform: uppercase; color: var(--accent); }
 
-  .navbar { position: sticky; top: 0; background: rgba(10,10,12,0.85); backdrop-filter: blur(8px); display: flex; justify-content: space-between; align-items: center; padding: 20px 32px; border-bottom: 1px solid var(--border); z-index: 10; }
+  .navbar { position: sticky; top: 0; background: rgba(0,0,0,0.72); backdrop-filter: blur(8px); display: flex; justify-content: space-between; align-items: center; padding: 20px 32px; border-bottom: 1px solid var(--border); z-index: 10; }
   .navbar .brand { font-weight: 700; font-size: 16px; letter-spacing: .02em; }
   .navbar nav { display: flex; gap: 32px; }
   .navbar a { font-size: 14px; font-weight: 600; color: var(--text-dim); text-decoration: none; transition: color .15s ease; }
@@ -48,8 +48,44 @@
   .glow { position: absolute; width: 520px; height: 520px; border-radius: 50%; background: radial-gradient(circle, rgba(255,122,69,0.16), rgba(255,122,69,0) 70%); pointer-events: none; }
   .hero-visual img { position: relative; z-index: 1; max-width: 340px; width: 100%; filter: drop-shadow(0 30px 40px rgba(0,0,0,0.45)); }
 
-  .tab-photo { height: 360px; margin-top: 24px; display: flex; align-items: center; justify-content: center; }
-  .tab-photo img { max-height: 100%; max-width: 100%; object-fit: contain; }
+  .tab-photo { height: 420px; margin-top: 24px; display: flex; align-items: center; justify-content: center; overflow: visible; cursor: zoom-in; }
+  .tab-photo img { max-height: 100%; max-width: 100%; object-fit: contain; display: block; border-radius: 4px; }
+  .tab-photo > * { transition: transform .35s ease; transform-origin: center center; }
+  .tab-photo:hover > * { transform: scale(1.35); }
+
+  sp-tabs, sp-tab-panel { overflow: visible; }
+  /* solo se ve el panel activo (lo controla el script de las pestanas) */
+  sp-tab-panel { display: none; }
+  sp-tab-panel[data-active] { display: block; }
+  /* respaldo visual si Spectrum aun no ha cargado */
+  sp-tabs:not(:defined) { display: block; }
+  sp-tab:not(:defined) { display: inline-block; padding: 10px 16px; margin: 0 4px 8px 0; border-bottom: 2px solid transparent; color: var(--text-dim); font: 600 14px 'Source Sans 3', sans-serif; cursor: pointer; }
+  sp-tab:not(:defined)::before { content: attr(label); }
+  sp-tab:not(:defined)[data-sel] { color: var(--text); border-bottom-color: var(--accent); }
+  sp-button:not(:defined) { display: inline-flex; align-items: center; padding: 12px 24px; border: 1px solid #2a2a2e; border-radius: 2px; color: var(--text); cursor: pointer; font: 600 14px 'Source Sans 3', sans-serif; }
+  sp-button[variant="accent"]:not(:defined) { background: var(--accent); border-color: var(--accent); color: #000; }
+  sp-accordion-item:not(:defined) { display: block; border-top: 1px solid #121214; }
+  sp-accordion-item:not(:defined)::before { content: attr(label); display: block; padding: 14px 4px; font-weight: 600; cursor: pointer; }
+  sp-accordion-item:not(:defined):not([open]) > * { display: none; }
+  sp-accordion-item:not(:defined)[open]::before { color: var(--accent); }
+  .hotspot-wrap { position: relative; height: 100%; display: inline-block; }
+  .hotspot-wrap img { height: 100%; width: auto; display: block; }
+  .hotspot {
+    position: absolute; width: 26px; height: 26px; margin: -13px 0 0 -13px;
+    border-radius: 50%; background: var(--accent); color: #141414;
+    font-family: 'Space Grotesk', sans-serif; font-weight: 700; font-size: 13px;
+    display: flex; align-items: center; justify-content: center;
+    box-shadow: 0 0 0 3px rgba(10,10,12,0.75); cursor: pointer; z-index: 2;
+  }
+  .hotspot .tip {
+    position: absolute; left: 50%; bottom: 135%; transform: translate(-50%, 6px);
+    width: 220px; background: var(--surface); border: 1px solid var(--border);
+    border-radius: 6px; padding: 10px 12px; text-align: left; font-family: 'Source Sans 3', sans-serif;
+    font-size: 12.5px; line-height: 1.4; color: var(--text-dim); opacity: 0; pointer-events: none;
+    transition: opacity .15s ease, transform .15s ease; z-index: 5;
+  }
+  .hotspot .tip strong { display: block; color: var(--text); font-size: 13px; margin-bottom: 4px; font-family: 'Source Sans 3', sans-serif; }
+  .hotspot:hover .tip { opacity: 1; transform: translate(-50%, 0); }
 
   .stats { display: grid; grid-template-columns: repeat(4, minmax(0,1fr)); gap: 1px; background: var(--border); }
   .stat { background: var(--bg); padding: 0 32px 0 0; display: flex; flex-direction: column; gap: 10px; }
@@ -88,6 +124,166 @@
 
   footer { display: flex; justify-content: space-between; padding: 40px 0; font-size: 13px; color: var(--text-faint); flex-wrap: wrap; gap: 8px; }
   .btn-primary { --spectrum-accent-background-color-default: var(--accent); --spectrum-accent-background-color-hover: var(--accent-hover); }
+
+  /* ===== Acabado minimalista / futurista (pure black) ===== */
+  html, body, sp-theme { background: #000 !important; }
+  sp-theme { --spectrum-gray-50:#000; --spectrum-gray-75:#000; --spectrum-gray-100:#000; }
+  sp-tabs, sp-tab-panel, sp-accordion, sp-accordion-item { background: transparent !important; }
+  .eyebrow, .stat-label, .card .idx, table.pinout th { font-family: 'JetBrains Mono', monospace; letter-spacing: .14em; font-weight: 500; }
+  .num-mark { font-family: 'JetBrains Mono', monospace; font-weight: 500; color: #121214; -webkit-text-stroke: 1px #26262b; }
+  .section { border-bottom: 1px solid #101012; }
+  .navbar { border-bottom: 1px solid #121214; }
+  .navbar .brand { letter-spacing: .28em; font-size: 14px; }
+
+  /* hero: fine grid + soft glow, photo floats on black */
+  .hero { position: relative; }
+  .hero::before { content:''; position:absolute; inset:0; pointer-events:none;
+    background-image: linear-gradient(rgba(255,255,255,.035) 1px, transparent 1px), linear-gradient(90deg, rgba(255,255,255,.035) 1px, transparent 1px);
+    background-size: 56px 56px;
+    -webkit-mask-image: radial-gradient(ellipse at 70% 45%, #000 0%, transparent 70%);
+            mask-image: radial-gradient(ellipse at 70% 45%, #000 0%, transparent 70%); }
+  .hero-copy, .hero-visual { position: relative; z-index: 1; }
+  .glow { background: radial-gradient(circle, rgba(255,122,69,0.20), rgba(255,122,69,0) 68%); }
+  .hero-visual img { filter: drop-shadow(0 0 36px rgba(255,122,69,0.16)); max-width: 380px; }
+  .tab-photo img { border-radius: 0; filter: drop-shadow(0 0 30px rgba(255,122,69,0.10)); }
+
+  /* cards: hairline, transparent, accent glow on hover */
+  .card { background: transparent; border: 1px solid #17171a; border-radius: 2px; }
+  .card:hover { border-color: var(--accent); box-shadow: 0 0 28px rgba(255,122,69,0.12); }
+
+  /* stats: hairline separators instead of grey blocks */
+  .stats { background: #121214; }
+  .stat-num { font-weight: 500; letter-spacing: -.01em; }
+
+  /* hotspots + glass tooltips */
+  .hotspot { background: transparent; color: var(--accent); border: 1.5px solid var(--accent);
+    box-shadow: 0 0 0 4px rgba(255,122,69,.14), 0 0 14px rgba(255,122,69,.45); font-family:'JetBrains Mono',monospace; font-weight:500; }
+  .hotspot:hover { background: var(--accent); color:#000; }
+  .hotspot .tip { background: rgba(0,0,0,.88); backdrop-filter: blur(10px); border: 1px solid rgba(255,122,69,.45);
+    border-radius: 2px; box-shadow: 0 10px 40px rgba(0,0,0,.8); }
+
+  /* form + table: minimal */
+  .contact-grid input, .contact-grid textarea { background: #000; border-radius: 2px; border-color: #1f1f23; }
+  table.pinout th, table.pinout td { border-bottom-color: #131316; }
+
+  /* ===== Tienda / carrito ===== */
+  .navbar nav { align-items: center; }
+  .navbar a.nav-buy { color: var(--accent); border: 1px solid rgba(255,122,69,.55); padding: 7px 16px; border-radius: 2px; letter-spacing: .12em; text-transform: uppercase; font-size: 12px; font-family: 'JetBrains Mono', monospace; }
+  .navbar a.nav-buy:hover { background: var(--accent); color: #000; }
+  .cart-btn { position: relative; background: transparent; border: 1px solid #1f1f23; color: var(--text); width: 40px; height: 36px; border-radius: 2px; cursor: pointer; display: inline-flex; align-items: center; justify-content: center; transition: border-color .15s ease, color .15s ease; }
+  .cart-btn:hover { border-color: var(--accent); color: var(--accent); }
+  .cart-count { position: absolute; top: -8px; right: -8px; min-width: 18px; height: 18px; padding: 0 4px; box-sizing: border-box; border-radius: 9px; background: var(--accent); color: #000; font: 500 11px/18px 'JetBrains Mono', monospace; text-align: center; }
+  .cart-count.bump { animation: bump .35s ease; }
+  @keyframes bump { 40% { transform: scale(1.5); } }
+
+  .buy-grid { display: grid; grid-template-columns: repeat(2, minmax(0,1fr)); gap: 24px; }
+  .buy-card { border: 1px solid #17171a; border-radius: 2px; display: flex; flex-direction: column; transition: border-color .2s ease, box-shadow .2s ease; }
+  .buy-card:hover { border-color: rgba(255,122,69,.6); box-shadow: 0 0 36px rgba(255,122,69,.10); }
+  .buy-img { height: 280px; display: flex; align-items: center; justify-content: center; background: radial-gradient(circle at 50% 55%, rgba(255,122,69,.10), transparent 62%); }
+  .buy-img img { max-height: 92%; max-width: 70%; object-fit: contain; filter: drop-shadow(0 0 26px rgba(255,122,69,.14)); }
+  .buy-info { padding: 24px 26px 26px; display: flex; flex-direction: column; gap: 10px; border-top: 1px solid #101012; }
+  .buy-name { font-family: 'Space Grotesk', sans-serif; font-size: 22px; font-weight: 700; }
+  .buy-desc { font-size: 14px; line-height: 1.55; color: var(--text-dim); min-height: 66px; }
+  .buy-price { font-family: 'JetBrains Mono', monospace; font-size: 15px; color: var(--accent); letter-spacing: .04em; }
+  .buy-row { display: flex; align-items: center; justify-content: space-between; gap: 16px; margin-top: 8px; }
+  .buy-note { margin: 22px 0 0; font-size: 13px; color: var(--text-faint); font-family: 'JetBrains Mono', monospace; letter-spacing: .04em; }
+
+  .qty { display: inline-flex; align-items: center; border: 1px solid #222226; border-radius: 2px; }
+  .qty button { width: 34px; height: 34px; background: transparent; border: 0; color: var(--text); font-size: 18px; cursor: pointer; }
+  .qty button:hover { color: var(--accent); }
+  .qty span { min-width: 30px; text-align: center; font-family: 'JetBrains Mono', monospace; font-size: 14px; }
+
+  .overlay { position: fixed; inset: 0; background: rgba(0,0,0,.66); backdrop-filter: blur(3px); opacity: 0; pointer-events: none; transition: opacity .25s ease; z-index: 40; }
+  .overlay.open { opacity: 1; pointer-events: auto; }
+  .drawer { position: fixed; top: 0; right: 0; height: 100%; width: 460px; max-width: 100%; background: #000; border-left: 1px solid #1b1b1f; transform: translateX(100%); transition: transform .32s cubic-bezier(.2,.8,.2,1); z-index: 50; display: flex; flex-direction: column; box-shadow: -30px 0 80px rgba(0,0,0,.8); }
+  .drawer.open { transform: translateX(0); }
+  .drawer-head { display: flex; justify-content: space-between; align-items: center; padding: 22px 26px; border-bottom: 1px solid #121214; }
+  .drawer-title { font-family: 'Space Grotesk', sans-serif; font-size: 20px; font-weight: 700; }
+  .icon-btn { background: transparent; border: 1px solid #1f1f23; color: var(--text-dim); width: 34px; height: 34px; border-radius: 2px; cursor: pointer; font-size: 14px; }
+  .icon-btn:hover { color: var(--accent); border-color: var(--accent); }
+  .steps { display: flex; gap: 6px; padding: 14px 26px; border-bottom: 1px solid #121214; font: 500 11px 'JetBrains Mono', monospace; letter-spacing: .12em; text-transform: uppercase; color: #4a4a50; }
+  .steps span { padding-bottom: 6px; border-bottom: 1px solid transparent; flex: 1; }
+  .steps span.on { color: var(--accent); border-bottom-color: var(--accent); }
+  .steps span.done { color: var(--text-dim); }
+  .drawer-body { flex: 1; overflow-y: auto; padding: 22px 26px; }
+  .drawer-foot { padding: 20px 26px 26px; border-top: 1px solid #121214; display: flex; flex-direction: column; gap: 12px; }
+  .foot-row { display: flex; justify-content: space-between; align-items: baseline; font-size: 14px; color: var(--text-dim); }
+  .foot-row strong { color: var(--text); font-family: 'JetBrains Mono', monospace; font-weight: 500; }
+  .foot-btns { display: flex; gap: 10px; }
+  .foot-btns sp-button { flex: 1; }
+
+  .empty { text-align: center; color: var(--text-faint); padding: 60px 10px; font-size: 14px; line-height: 1.6; }
+  .empty svg { opacity: .4; margin-bottom: 14px; }
+  .line { display: grid; grid-template-columns: 76px 1fr; gap: 16px; padding: 16px 0; border-bottom: 1px solid #111113; }
+  .line-img { height: 76px; background: radial-gradient(circle, rgba(255,122,69,.10), transparent 70%); display: flex; align-items: center; justify-content: center; }
+  .line-img img { max-height: 100%; max-width: 100%; object-fit: contain; }
+  .line-name { font-weight: 600; font-size: 15px; }
+  .line-sub { font: 400 12px 'JetBrains Mono', monospace; color: var(--text-faint); margin-top: 3px; }
+  .line-ctrl { display: flex; justify-content: space-between; align-items: center; margin-top: 10px; }
+  .line-ctrl .qty button { width: 28px; height: 28px; }
+  .rm { background: none; border: 0; color: var(--text-faint); font-size: 12px; cursor: pointer; text-decoration: underline; }
+  .rm:hover { color: var(--accent); }
+
+  .form-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; }
+  .field { display: flex; flex-direction: column; gap: 6px; }
+  .field.full { grid-column: 1 / -1; }
+  .field label { font: 500 11px 'JetBrains Mono', monospace; letter-spacing: .1em; text-transform: uppercase; color: var(--text-dim); }
+  .field input, .field textarea { background: #000; border: 1px solid #1f1f23; border-radius: 2px; color: var(--text); padding: 11px 12px; font: inherit; font-size: 14px; box-sizing: border-box; width: 100%; }
+  .field input:focus, .field textarea:focus { outline: none; border-color: var(--accent); }
+  .field.err input { border-color: #ff4d4d; }
+  .field .msg { color: #ff6b6b; font-size: 12px; min-height: 0; }
+
+  .sum-block { border: 1px solid #141417; padding: 14px 16px; margin-bottom: 14px; }
+  .sum-block h4 { margin: 0 0 10px; font: 500 11px 'JetBrains Mono', monospace; letter-spacing: .12em; text-transform: uppercase; color: var(--accent); }
+  .sum-line { display: flex; justify-content: space-between; gap: 12px; font-size: 14px; padding: 4px 0; color: var(--text-dim); }
+  .sum-line b { color: var(--text); font-weight: 600; }
+  .ok-box { text-align: center; padding: 40px 6px; }
+  .ok-box .tick { width: 54px; height: 54px; border-radius: 50%; border: 1.5px solid var(--accent); color: var(--accent); display: inline-flex; align-items: center; justify-content: center; font-size: 26px; margin-bottom: 18px; box-shadow: 0 0 24px rgba(255,122,69,.35); }
+  .ok-box h3 { font-family: 'Space Grotesk', sans-serif; font-size: 22px; margin: 0 0 10px; }
+  .ok-box p { color: var(--text-dim); font-size: 14px; line-height: 1.6; margin: 0 0 10px; }
+  .toast { position: fixed; left: 50%; bottom: 28px; transform: translate(-50%, 20px); background: #000; border: 1px solid var(--accent); color: var(--text); padding: 11px 18px; font: 500 12px 'JetBrains Mono', monospace; letter-spacing: .06em; opacity: 0; pointer-events: none; transition: opacity .2s ease, transform .2s ease; z-index: 60; box-shadow: 0 0 28px rgba(255,122,69,.25); }
+  .toast.show { opacity: 1; transform: translate(-50%, 0); }
+  @media (max-width: 820px) { .buy-grid { grid-template-columns: 1fr; } .form-grid { grid-template-columns: 1fr; } }
+
+  /* fotos negro puro: el negro se funde con cualquier fondo/resplandor */
+  .hero-visual img, .tab-photo img, .buy-img img, .line-img img { filter: none !important; mix-blend-mode: screen; }
+  .hero-visual, .buy-img, .line-img { isolation: isolate; }
+  .cart-count[hidden] { display: none; }
+
+  /* ===== Ficha de producto (un solo producto) ===== */
+  .pin-order { margin: 14px 2px 4px; font: 400 12.5px/1.7 'JetBrains Mono', monospace; color: var(--text-faint); }
+  .buy-feature { display: grid; grid-template-columns: 1.1fr .9fr; gap: 56px; align-items: center; }
+  .buy-gallery { display: flex; flex-direction: column; gap: 14px; }
+  .buy-main { height: 540px; display: flex; align-items: center; justify-content: center; overflow: hidden; border: 1px solid #121214; border-radius: 2px; background: radial-gradient(circle at 50% 55%, rgba(255,122,69,.13), transparent 62%); isolation: isolate; cursor: zoom-in; }
+  .buy-main img { max-height: 94%; max-width: 86%; object-fit: contain; mix-blend-mode: screen; transition: transform .45s ease; }
+  .buy-main:hover img { transform: scale(1.22); }
+  .buy-thumbs { display: grid; grid-template-columns: repeat(5, 1fr); gap: 10px; }
+  .thumb { height: 78px; padding: 6px; background: #000; border: 1px solid #17171a; border-radius: 2px; cursor: pointer; display: flex; align-items: center; justify-content: center; transition: border-color .15s ease, box-shadow .15s ease; }
+  .thumb img { max-width: 100%; max-height: 100%; object-fit: contain; mix-blend-mode: screen; opacity: .72; transition: opacity .15s ease; }
+  .thumb:hover img, .thumb.on img { opacity: 1; }
+  .thumb.on { border-color: var(--accent); box-shadow: 0 0 18px rgba(255,122,69,.22); }
+  .buy-detail { display: flex; flex-direction: column; gap: 14px; }
+  .buy-title { margin: 0; font-family: 'Space Grotesk', sans-serif; font-size: 40px; line-height: 1.05; font-weight: 700; }
+  .buy-detail .buy-desc { min-height: 0; font-size: 15.5px; line-height: 1.65; margin: 0; }
+  .buy-bullets { list-style: none; margin: 4px 0 6px; padding: 0; border-top: 1px solid #121214; }
+  .buy-bullets li { padding: 11px 0 11px 22px; border-bottom: 1px solid #121214; position: relative; font-size: 14px; color: var(--text); }
+  .buy-bullets li::before { content: ''; position: absolute; left: 2px; top: 50%; width: 7px; height: 7px; margin-top: -3.5px; background: var(--accent); box-shadow: 0 0 10px rgba(255,122,69,.7); }
+  .buy-detail .buy-price { font-size: 20px; }
+  .buy-detail .buy-row { margin-top: 2px; }
+  .buy-now { align-self: stretch; }
+  @media (max-width: 900px) { .buy-feature { grid-template-columns: 1fr; gap: 32px; } .buy-main { height: 420px; } .buy-title { font-size: 32px; } }
+
+  /* MOVIL-RESPONSIVE */
+  sp-accordion-item table { display: block; max-width: 100%; overflow-x: auto; }
+  @media (max-width: 760px) {
+    .navbar { padding: 12px 16px; }
+    .navbar .brand { font-size: 12px; letter-spacing: .2em; }
+    .navbar nav { gap: 12px; }
+    .navbar nav a:not(.nav-buy) { display: none; }
+    .wrap { padding: 0 18px; } .hero { flex-direction: column; gap: 32px; } h1 { font-size: 34px; }
+    .stats, .cards { grid-template-columns: 1fr 1fr; gap: 14px; } .contact-grid { grid-template-columns: 1fr; }
+    .tab-photo { height: 340px; } .section { padding: 56px 0; } .stat { padding-right: 12px; }
+  }
 </style>
 </head>
 <body>
@@ -101,6 +297,11 @@
     <a href="#aplicaciones">Aplicaciones</a>
     <a href="#pinout">Pinout</a>
     <a href="#contacto">Contacto</a>
+    <a href="#comprar" class="nav-buy">Comprar</a>
+    <button class="cart-btn" id="cartOpen" aria-label="Abrir carrito" type="button">
+      <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M3 4h2l2.4 11.2a1 1 0 0 0 1 .8h8.9a1 1 0 0 0 1-.76L20 8H6.2"/><circle cx="9.5" cy="20" r="1.3"/><circle cx="17.5" cy="20" r="1.3"/></svg>
+      <span class="cart-count" id="cartCount" hidden>0</span>
+    </button>
   </nav>
 </div>
 
@@ -110,21 +311,21 @@
   <section class="section hero">
     <div class="hero-copy">
       <sp-badge variant="neutral">TJA1042TK &middot; CiA 303-1</sp-badge>
-      <div class="eyebrow" style="margin-top: 4px;">Modulo transceptor CAN</div>
+      <div class="eyebrow" style="margin-top: 4px;">Módulo transceptor CAN</div>
       <h1>La interfaz entre tu controlador y el bus CAN</h1>
       <p>
-        Basado en el TJA1042 de NXP, transceptor CAN de alta velocidad de tercera generacion.
-        Conector DB9 con pinout estandar CiA 303-1, listo para integrarse en redes CAN
+        Basado en el TJA1042 de NXP, transceptor CAN de alta velocidad de tercera generación.
+        Conector DB9 con pinout estándar CiA 303-1, listo para integrarse en redes CAN
         industriales y automotrices.
       </p>
       <div class="hero-actions">
-        <sp-button variant="accent" class="btn-primary" onclick="document.getElementById('specs').scrollIntoView({behavior:'smooth'})">Ver especificaciones</sp-button>
-        <sp-button variant="secondary" outline onclick="document.getElementById('pinout').scrollIntoView({behavior:'smooth'})">Ver pinout</sp-button>
+        <sp-button variant="accent" class="btn-primary" id="heroBuy">Comprar ahora</sp-button>
+        <sp-button variant="secondary" outline onclick="document.getElementById('specs').scrollIntoView({behavior:'smooth'})">Ver especificaciones</sp-button>
       </div>
     </div>
     <div class="hero-visual">
       <div class="glow"></div>
-      <img src="photos/frontal.png" alt="Modulo transceptor CAN TJA1042TK, vista frontal">
+      <img src="photos/foto1-limpia.jpg" alt="CAN Transceiver 2, vista frontal">
     </div>
   </section>
 
@@ -132,14 +333,13 @@
   <section class="section" id="specs">
     <div class="stats">
       <div class="stat"><div class="stat-line"></div><div class="stat-num">5 Mbit/s</div><div class="stat-label">Velocidad de datos (CAN FD)</div></div>
-      <div class="stat"><div class="stat-line"></div><div class="stat-num">4.5-5.5 V</div><div class="stat-label">Alimentacion (VCC)</div></div>
-      <div class="stat"><div class="stat-line"></div><div class="stat-num">8 kV</div><div class="stat-label">Proteccion ESD (bus)</div></div>
-      <div class="stat"><div class="stat-line"></div><div class="stat-num">-40 a 150 &deg;C</div><div class="stat-label">Temperatura de operacion</div></div>
+      <div class="stat"><div class="stat-line"></div><div class="stat-num">4.5-5.5 V</div><div class="stat-label">Alimentación (VCC)</div></div>
+      <div class="stat"><div class="stat-line"></div><div class="stat-num">8 kV</div><div class="stat-label">Protección ESD (bus)</div></div>
+      <div class="stat"><div class="stat-line"></div><div class="stat-num">-40 a 150 &deg;C</div><div class="stat-label">Temperatura de operación</div></div>
     </div>
     <p style="color: var(--text-dim); max-width: 720px; margin-top: 32px; line-height: 1.6; font-size: 15px;">
       El chip TJA1042 cumple ISO 11898-2:2016 y SAE J2284-1 a J2284-5, con muy bajo consumo en modo
-      standby (wake-up por host o por bus), deteccion de subtension en VCC y VIO, proteccion termica,
-      y comportamiento pasivo en el bus cuando el modulo no esta alimentado. Los pines de bus soportan
+      standby (wake-up por host o por bus), detección de subtensión en VCC y VIO, protección térmica y comportamiento pasivo en el bus cuando el módulo no está alimentado. Los pines de bus soportan
       hasta 58V de robustez ante transitorios automotrices.
     </p>
   </section>
@@ -149,14 +349,14 @@
     <div class="section-head">
       <div>
         <div class="eyebrow">Aplicaciones</div>
-        <h2>Donde encaja este modulo</h2>
+        <h2>Dónde encaja este módulo</h2>
       </div>
       <div class="num-mark">01</div>
     </div>
     <div class="cards">
-      <div class="card"><div class="idx">01</div><strong>Automatizacion industrial</strong><p>PLCs, sensores y actuadores comunicados por bus CAN en planta.</p></div>
-      <div class="card"><div class="idx">02</div><strong>Diagnostico automotriz</strong><p>Lectura y depuracion de redes CAN de vehiculos (OBD, ECUs).</p></div>
-      <div class="card"><div class="idx">03</div><strong>Robotica</strong><p>Comunicacion entre controladores de motor y unidades de control.</p></div>
+      <div class="card"><div class="idx">01</div><strong>Automatización industrial</strong><p>PLCs, sensores y actuadores comunicados por bus CAN en planta.</p></div>
+      <div class="card"><div class="idx">02</div><strong>Diagnóstico automotriz</strong><p>Lectura y depuración de redes CAN de vehículos (OBD, ECUs).</p></div>
+      <div class="card"><div class="idx">03</div><strong>Robótica</strong><p>Comunicación entre controladores de motor y unidades de control.</p></div>
       <div class="card"><div class="idx">04</div><strong>Desarrollo embebido</strong><p>Prototipado de nodos CAN para microcontroladores propios.</p></div>
     </div>
   </section>
@@ -166,73 +366,117 @@
     <div class="section-head">
       <div>
         <div class="eyebrow">Detalle del producto</div>
-        <h2>El modulo desde todos los angulos</h2>
+        <h2>El módulo desde todos los ángulos</h2>
       </div>
       <div class="num-mark">02</div>
     </div>
     <sp-tabs selected="f1">
-      <sp-tab value="f1" label="TJA1042TK - Detalle"></sp-tab>
-      <sp-tab value="f2" label="CAN Transceiver 2 - Detalle"></sp-tab>
-      <sp-tab value="f3" label="CAN Transceiver 2 (lateral)"></sp-tab>
-      <sp-tab value="f4" label="TJA1042TK (conector)"></sp-tab>
-      <sp-tab value="f5" label="CAN Transceiver 2 (conector)"></sp-tab>
+      <sp-tab value="f1" label="Cara frontal"></sp-tab>
+      <sp-tab value="f2" label="Cara posterior"></sp-tab>
+      <sp-tab value="f3" label="Perspectiva frontal"></sp-tab>
+      <sp-tab value="f4" label="Posterior · conector"></sp-tab>
+      <sp-tab value="f5" label="Lateral · conector DB9"></sp-tab>
 
       <sp-tab-panel value="f1">
-        <div class="tab-photo"><img src="photos/foto1-anotada.jpg" alt="Modulo TJA1042TK con componentes senalados y su funcion"></div>
+        <div class="tab-photo">
+          <div class="hotspot-wrap">
+            <img src="photos/foto1-limpia.jpg" alt="CAN Transceiver 2, cara frontal. Pasa el mouse sobre los puntos para ver cada componente.">
+            <div class="hotspot" style="left:50.0%;top:10.4%;">1<div class="tip"><strong>Conector DB9 (CiA 303-1)</strong>Puerto físico de conexión al bus CAN.</div></div>
+            <div class="hotspot" style="left:57.6%;top:33.8%;">2<div class="tip"><strong>R2, R3, R4, C4, C5</strong>Componentes pasivos de las líneas CAN: terminación y filtrado de la señal.</div></div>
+            <div class="hotspot" style="left:68.8%;top:36.4%;">3<div class="tip"><strong>TP5 · CAN H</strong>Punto de prueba para medir la línea CAN alta con un osciloscopio.</div></div>
+            <div class="hotspot" style="left:68.8%;top:42.5%;">4<div class="tip"><strong>TP4 · CAN L</strong>Punto de prueba para medir la línea CAN baja.</div></div>
+            <div class="hotspot" style="left:68.8%;top:51.2%;">5<div class="tip"><strong>TP1 · GND</strong>Punto de prueba de tierra.</div></div>
+            <div class="hotspot" style="left:49.5%;top:62.8%;">6<div class="tip"><strong>U1 · Transceptor CAN</strong>Convierte las señales lógicas TX/RX en la señal diferencial CAN H / CAN L del bus.</div></div>
+            <div class="hotspot" style="left:59.1%;top:67.0%;">7<div class="tip"><strong>Puntos de prueba TX / RX</strong>Bucles amarillo y rojo junto a los pines TX y RX, para enganchar sondas.</div></div>
+            <div class="hotspot" style="left:49.9%;top:75.2%;">8<div class="tip"><strong>H1 · Jumper de modo</strong>Selecciona DISABLE / STBY / ENABLE y la tensión lógica (5V / VIO / 3V3).</div></div>
+            <div class="hotspot" style="left:45.3%;top:84.5%;">9<div class="tip"><strong>R1 + LED rojo</strong>Indicador luminoso con su resistencia limitadora.</div></div>
+            <div class="hotspot" style="left:28.2%;top:71.1%;">10<div class="tip"><strong>Header izquierdo</strong>STB, NC, 3V3, GND: control y alimentación.</div></div>
+            <div class="hotspot" style="left:71.7%;top:71.1%;">11<div class="tip"><strong>Header derecho</strong>NC, TX, RX, 5V, GND: señales lógicas y alimentación.</div></div>
+          </div>
+        </div>
       </sp-tab-panel>
       <sp-tab-panel value="f2">
-        <div class="tab-photo"><img src="photos/foto2-anotada.jpg" alt="Modulo CAN Transceiver 2 con componentes senalados y su funcion"></div>
+        <div class="tab-photo">
+          <div class="hotspot-wrap">
+            <img src="photos/foto2-limpia.jpg" alt="CAN Transceiver 2, cara posterior. Pasa el mouse sobre los puntos para ver cada detalle.">
+            <div class="hotspot" style="left:50.1%;top:11.8%;">1<div class="tip"><strong>Conector DB9</strong>Visto desde la cara de soldadura: aquí se sueldan los contactos del conector.</div></div>
+            <div class="hotspot" style="left:22.7%;top:18.9%;">2<div class="tip"><strong>Orificio de fijación</strong>Taladro para fijar la placa.</div></div>
+            <div class="hotspot" style="left:49.4%;top:19.3%;">3<div class="tip"><strong>CiA 303-1</strong>Indica que el conector sigue la especificación CiA 303-1 (cableado y asignación de pines).</div></div>
+            <div class="hotspot" style="left:25.2%;top:30.3%;">4<div class="tip"><strong>Soldadura de fijación</strong>Los tornillos de fijación del conector DB9 se sueldan a la placa (x2).</div></div>
+            <div class="hotspot" style="left:49.4%;top:30.3%;">5<div class="tip"><strong>Contactos del DB9</strong>Los 9 terminales del conector, soldados a la placa.</div></div>
+            <div class="hotspot" style="left:30.8%;top:44.8%;">6<div class="tip"><strong>Terminales de CAN H / CAN L</strong>Terminales soldados de los puntos de prueba de la cara frontal.</div></div>
+            <div class="hotspot" style="left:49.4%;top:52.8%;">7<div class="tip"><strong>Etiqueta TJA1042TK</strong>Modelo del chip transceptor que lleva esta placa.</div></div>
+            <div class="hotspot" style="left:49.5%;top:69.7%;">8<div class="tip"><strong>Esquema del transceptor</strong>Diagrama serigrafiado del transceptor CAN de la placa.</div></div>
+            <div class="hotspot" style="left:56.6%;top:73.5%;">9<div class="tip"><strong>Orificio de paso</strong>Taladro que atraviesa la placa.</div></div>
+            <div class="hotspot" style="left:40.7%;top:74.2%;">10<div class="tip"><strong>Terminales de TX / RX</strong>Terminales soldados de los bucles de prueba, junto a CANTX y CANRX.</div></div>
+            <div class="hotspot" style="left:28.4%;top:77.5%;">11<div class="tip"><strong>Header izquierdo (visto por detrás)</strong>NC, CANTX, CANRX, 5V, GND.</div></div>
+            <div class="hotspot" style="left:71.1%;top:77.5%;">12<div class="tip"><strong>Header derecho (visto por detrás)</strong>NC, 3V3, GND.</div></div>
+            <div class="hotspot" style="left:51.4%;top:92.5%;">13<div class="tip"><strong>firechip.dev · HW REV. 1.00</strong>Fabricante y revisión de hardware de la placa.</div></div>
+          </div>
+        </div>
       </sp-tab-panel>
       <sp-tab-panel value="f3">
-        <div class="tab-photo"><img src="photos/foto3-transceiver2-lateral.jpg" alt="Vista lateral de la version CAN Transceiver 2"></div>
+        <div class="tab-photo"><img src="photos/foto3-transceiver2-lateral.jpg" alt="CAN Transceiver 2 en perspectiva frontal"></div>
       </sp-tab-panel>
       <sp-tab-panel value="f4">
-        <div class="tab-photo"><img src="photos/foto4-tja1042-conector.jpg" alt="Vista del conector DB9 del modulo TJA1042TK"></div>
+        <div class="tab-photo"><img src="photos/foto4-tja1042-conector.jpg" alt="Cara posterior de la placa vista desde el lado del conector DB9"></div>
       </sp-tab-panel>
       <sp-tab-panel value="f5">
-        <div class="tab-photo"><img src="photos/foto5-transceiver2-conector.jpg" alt="Vista del conector DB9 de la version CAN Transceiver 2"></div>
+        <div class="tab-photo"><img src="photos/foto5-transceiver2-conector.jpg" alt="Vista lateral de la placa con el conector DB9"></div>
       </sp-tab-panel>
     </sp-tabs>
+  </section>
+
+  <!-- COMPRAR -->
+  <section class="section" id="comprar">
+    <div class="section-head">
+      <div>
+        <div class="eyebrow">Comprar</div>
+        <h2>Consigue tu CAN Transceiver 2</h2>
+      </div>
+      <div class="num-mark">03</div>
+    </div>
+    <div class="buy-feature" id="buyFeature"></div>
+    <p class="buy-note">Cada pedido se revisa y confirma con nuestro equipo antes del cobro y el envío.</p>
   </section>
 
   <!-- PINOUT -->
   <section class="section" id="pinout">
     <div class="section-head">
       <div>
-        <div class="eyebrow">Integracion</div>
+        <div class="eyebrow">Integración</div>
         <h2>Pinout</h2>
       </div>
-      <div class="num-mark">03</div>
+      <div class="num-mark">04</div>
     </div>
     <sp-accordion>
-      <sp-accordion-item label="Version estandar (TJA1042TK)" open>
+      <sp-accordion-item label="Headers de pines (cara frontal)" open>
         <table class="pinout">
-          <thead><tr><th>Pin</th><th>Funcion</th></tr></thead>
+          <thead><tr><th>Pin</th><th>Función</th></tr></thead>
           <tbody>
-            <tr><td>CANTX</td><td class="dim">Entrada de transmision (logica, hacia el transceptor)</td></tr>
-            <tr><td>CANRX</td><td class="dim">Salida de recepcion (logica, desde el transceptor)</td></tr>
-            <tr><td>5V</td><td class="dim">Alimentacion VCC</td></tr>
-            <tr><td>3V3</td><td class="dim">Referencia / alimentacion logica</td></tr>
+            <tr><td>STB</td><td class="dim">Standby: control del modo de bajo consumo del transceptor</td></tr>
+            <tr><td>TX</td><td class="dim">Entrada de transmisión (lógica, hacia el transceptor). En la cara posterior se rotula CANTX</td></tr>
+            <tr><td>RX</td><td class="dim">Salida de recepción (lógica, desde el transceptor). En la cara posterior se rotula CANRX</td></tr>
+            <tr><td>5V</td><td class="dim">Alimentación de 5 V</td></tr>
+            <tr><td>3V3</td><td class="dim">Alimentación / referencia de 3,3 V</td></tr>
             <tr><td>GND</td><td class="dim">Tierra</td></tr>
-            <tr><td>NC</td><td class="dim">Sin conexion (resto de pines del header)</td></tr>
+            <tr><td>NC</td><td class="dim">Sin conexión</td></tr>
           </tbody>
         </table>
+        <p class="pin-order">Header izquierdo (de arriba abajo): STB, NC, NC, NC, NC, NC, 3V3, GND.<br>Header derecho (de arriba abajo): NC, NC, TX, RX, NC, NC, 5V, GND.</p>
       </sp-accordion-item>
-      <sp-accordion-item label="Version 2 (con control STB/Enable)">
+      <sp-accordion-item label="Jumper de modo (H1)">
         <table class="pinout">
-          <thead><tr><th>Pin</th><th>Funcion</th></tr></thead>
+          <thead><tr><th>Posición</th><th>Función</th></tr></thead>
           <tbody>
-            <tr><td>STB</td><td class="dim">Standby: entra en modo de bajo consumo</td></tr>
-            <tr><td>TX / RX</td><td class="dim">Logica de transmision y recepcion</td></tr>
-            <tr><td>5V / VIO / 3V3</td><td class="dim">Alimentacion y referencia logica seleccionable</td></tr>
-            <tr><td>Jumper H1</td><td class="dim">DISABLE / STBY / ENABLE: selecciona el modo de operacion</td></tr>
-            <tr><td>GND</td><td class="dim">Tierra</td></tr>
+            <tr><td>DISABLE / STBY / ENABLE</td><td class="dim">Selecciona el modo del transceptor</td></tr>
+            <tr><td>5V / VIO / 3V3</td><td class="dim">Selecciona la tensión de referencia lógica (VIO)</td></tr>
           </tbody>
         </table>
       </sp-accordion-item>
       <sp-accordion-item label="Conector DB9 (CiA 303-1)">
         <table class="pinout">
-          <thead><tr><th>Pin DB9</th><th>Senal</th></tr></thead>
+          <thead><tr><th>Pin DB9</th><th>Señal</th></tr></thead>
           <tbody>
             <tr><td>2</td><td class="dim">CAN_L</td></tr>
             <tr><td>3</td><td class="dim">GND</td></tr>
@@ -248,19 +492,19 @@
     <div class="section-head">
       <div>
         <div class="eyebrow">Referencia interna</div>
-        <h2>Guia para fotografiar el producto</h2>
+        <h2>Guía para fotografiar el producto</h2>
       </div>
-      <div class="num-mark">04</div>
+      <div class="num-mark">05</div>
     </div>
-    <p style="color: var(--text-dim); max-width: 640px; margin-bottom: 8px;">Para que cualquier fotografo que se incorpore al equipo mantenga el mismo estandar visual:</p>
+    <p style="color: var(--text-dim); max-width: 640px; margin-bottom: 8px;">Para que cualquier fotógrafo que se incorpore al equipo mantenga el mismo estándar visual:</p>
     <ol class="photo-steps">
       <li><div><strong>Fondo blanco liso.</strong> Cartulina o papel blanco curvado (infinity curve) para que no se vea el borde entre mesa y fondo.</div></li>
-      <li><div><strong>Deja margen alrededor.</strong> El producto no debe tocar los bordes del encuadre; deja fondo visible en las 4 direcciones para que el recorte digital funcione bien despues.</div></li>
-      <li><div><strong>Toma cenital.</strong> Camara perpendicular a la placa, directamente desde arriba, sin distorsion de perspectiva.</div></li>
-      <li><div><strong>Dos luces difusas a 45 grados.</strong> Nunca usar el flash directo: crea sombras duras y brillos en los componentes metalicos.</div></li>
-      <li><div><strong>Tripode o apoyo firme.</strong> Evita el desenfoque por movimiento de la mano al presionar el boton.</div></li>
-      <li><div><strong>Varios angulos:</strong> vista frontal, vista 3/4 mostrando el conector DB9, y un acercamiento a los jumpers de control.</div></li>
-      <li><div><strong>Revisar antes de subir.</strong> Buscar sombras duras o reflejos en superficies metalicas y corregir la iluminacion si aparecen.</div></li>
+      <li><div><strong>Deja margen alrededor.</strong> El producto no debe tocar los bordes del encuadre; deja fondo visible en las 4 direcciones para que el recorte digital funcione bien después.</div></li>
+      <li><div><strong>Toma cenital.</strong> Cámara perpendicular a la placa, directamente desde arriba, sin distorsión de perspectiva.</div></li>
+      <li><div><strong>Dos luces difusas a 45 grados.</strong> Nunca usar el flash directo: crea sombras duras y brillos en los componentes metálicos.</div></li>
+      <li><div><strong>Trípode o apoyo firme.</strong> Evita el desenfoque por movimiento de la mano al presionar el botón.</div></li>
+      <li><div><strong>Varios ángulos:</strong> cara frontal, cara posterior, vista lateral con el conector DB9 y un acercamiento al jumper de modo.</div></li>
+      <li><div><strong>Revisar antes de subir.</strong> Buscar sombras duras o reflejos en superficies metálicas y corregir la iluminación si aparecen.</div></li>
     </ol>
   </section>
 
@@ -271,9 +515,9 @@
         <div class="eyebrow">Hablemos</div>
         <h2>Contacto</h2>
       </div>
-      <div class="num-mark">05</div>
+      <div class="num-mark">06</div>
     </div>
-    <p style="color: var(--text-dim); max-width: 640px; margin-bottom: 24px;">Escribenos si tienes preguntas sobre este modulo o quieres cotizar unidades.</p>
+    <p style="color: var(--text-dim); max-width: 640px; margin-bottom: 24px;">Escríbenos si tienes preguntas sobre este módulo o quieres cotizar unidades.</p>
     <div class="contact-grid">
       <div>
         <label>Nombre</label>
@@ -285,19 +529,284 @@
       </div>
       <div class="contact-full">
         <label>Mensaje</label>
-        <textarea rows="4" placeholder="Cuentanos que necesitas"></textarea>
+        <textarea rows="4" placeholder="Cuéntanos qué necesitas"></textarea>
       </div>
     </div>
     <sp-button variant="accent" class="btn-primary" style="margin-top: 20px;">Enviar mensaje</sp-button>
   </section>
 
   <footer>
-    <div>Modulo transceptor CAN &middot; chip NXP TJA1042TK &middot; CiA 303-1</div>
+    <div>CAN Transceiver 2 &middot; chip NXP TJA1042TK &middot; CiA 303-1</div>
     <div>Construido con Adobe Spectrum Web Components</div>
   </footer>
 
 </div>
+
+<!-- CARRITO -->
+<div class="overlay" id="overlay"></div>
+<aside class="drawer" id="drawer" aria-hidden="true" aria-label="Carrito de compra">
+  <div class="drawer-head">
+    <div class="drawer-title" id="drawerTitle">Carrito</div>
+    <button class="icon-btn" id="drawerClose" type="button" aria-label="Cerrar">&#10005;</button>
+  </div>
+  <div class="steps" id="steps"><span data-s="1">01 Carrito</span><span data-s="2">02 Datos</span><span data-s="3">03 Confirmar</span></div>
+  <div class="drawer-body" id="drawerBody"></div>
+  <div class="drawer-foot" id="drawerFoot"></div>
+</aside>
+<div class="toast" id="toast"></div>
 </sp-theme>
 
+
+<script>
+/* Pestañas: al hacer click se muestra la imagen de esa cara (con o sin Spectrum) */
+(function () {
+  document.querySelectorAll('sp-tabs').forEach(function (tabs) {
+    var first = tabs.querySelector('sp-tab');
+    function show(v) {
+      tabs.querySelectorAll('sp-tab-panel').forEach(function (p) { p.toggleAttribute('data-active', p.getAttribute('value') === v); });
+      tabs.querySelectorAll('sp-tab').forEach(function (t) { t.toggleAttribute('data-sel', t.getAttribute('value') === v); });
+    }
+    show(tabs.getAttribute('selected') || (first && first.getAttribute('value')));
+    tabs.addEventListener('click', function (e) {
+      var t = e.target.closest('sp-tab');
+      if (t) show(t.getAttribute('value'));
+    });
+    tabs.addEventListener('change', function () { if (tabs.selected) show(tabs.selected); });
+  });
+  /* Acordeón de respaldo si Spectrum no carga */
+  document.querySelectorAll('sp-accordion-item').forEach(function (it) {
+    it.addEventListener('click', function (e) {
+      if (customElements.get('sp-accordion-item')) return;
+      var r = it.getBoundingClientRect();
+      if (e.clientY - r.top > 52) return;
+      it.toggleAttribute('open');
+    });
+  });
+})();
+</script>
+
+<script>
+/* =====================================================================
+   CONFIGURACION DE LA TIENDA  -  EDITA AQUI
+   - price: numero (ej. 39.9). Si lo dejas en null se muestra "Consultar precio".
+   - orderEmail: correo donde llegan los pedidos.
+   ===================================================================== */
+const SHOP = {
+  currency: 'EUR',
+  locale: 'es-ES',
+  orderEmail: 'ventas@tuempresa.com',   // <-- CAMBIA ESTE CORREO
+  products: [
+    { id: 'can-transceiver-2', name: 'CAN Transceiver 2',
+      desc: 'Módulo transceptor CAN con chip NXP TJA1042TK y conector DB9 (CiA 303-1). Incluye jumper de modo, puntos de prueba CAN H / CAN L y TX / RX, y pines de acceso a todas las señales.',
+      bullets: ['CAN FD hasta 5 Mbit/s', 'Alimentación de 4,5 a 5,5 V', 'Conector DB9 con pinout CiA 303-1', 'Jumper de modo: DISABLE / STBY / ENABLE'],
+      price: null, img: 'photos/foto1-limpia.jpg',
+      gallery: [
+        { src: 'photos/foto1-limpia.jpg', label: 'Cara frontal' },
+        { src: 'photos/foto2-limpia.jpg', label: 'Cara posterior' },
+        { src: 'photos/foto3-transceiver2-lateral.jpg', label: 'Perspectiva frontal' },
+        { src: 'photos/foto4-tja1042-conector.jpg', label: 'Posterior · conector' },
+        { src: 'photos/foto5-transceiver2-conector.jpg', label: 'Lateral · conector DB9' }
+      ] }
+  ]
+};
+
+(function () {
+  const KEY = 'can-transceiver-cart-v1';
+  const $ = (id) => document.getElementById(id);
+  const esc = (v) => String(v == null ? '' : v).replace(/[&<>"']/g, (c) => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+  const byId = (id) => SHOP.products.find((p) => p.id === id);
+  const money = (n) => new Intl.NumberFormat(SHOP.locale, { style: 'currency', currency: SHOP.currency }).format(n);
+  const priceLabel = (p) => (p.price == null ? 'Consultar precio' : money(p.price));
+
+  let cart = [];            // [{id, qty}]
+  let step = 1;             // 1 carrito, 2 datos, 3 confirmar, 4 enviado
+  let customer = { nombre:'', email:'', telefono:'', direccion:'', ciudad:'', cp:'', pais:'', notas:'' };
+  const buyQty = {};        // cantidad elegida en cada tarjeta
+
+  try { const raw = localStorage.getItem(KEY); if (raw) cart = JSON.parse(raw).filter((l) => byId(l.id) && l.qty > 0); } catch (e) {}
+  const save = () => { try { localStorage.setItem(KEY, JSON.stringify(cart)); } catch (e) {} };
+
+  const count = () => cart.reduce((a, l) => a + l.qty, 0);
+  const hasUnpriced = () => cart.some((l) => byId(l.id).price == null);
+  const total = () => cart.reduce((a, l) => a + (byId(l.id).price || 0) * l.qty, 0);
+  const totalLabel = () => (hasUnpriced() ? (total() > 0 ? money(total()) + ' + a confirmar' : 'A confirmar') : money(total()));
+
+  /* ---------- ficha de producto ---------- */
+  function renderBuy() {
+    const p = SHOP.products[0]; buyQty[p.id] = buyQty[p.id] || 1;
+    $('buyFeature').innerHTML = `
+      <div class="buy-gallery">
+        <div class="buy-main"><img id="buyMain" src="${esc(p.gallery[0].src)}" alt="${esc(p.name)}"></div>
+        <div class="buy-thumbs">${p.gallery.map((g, i) => `<button type="button" class="thumb${i === 0 ? ' on' : ''}" data-thumb="${i}" aria-label="${esc(g.label)}" title="${esc(g.label)}"><img src="${esc(g.src)}" alt=""></button>`).join('')}</div>
+      </div>
+      <div class="buy-detail">
+        <div class="eyebrow">Módulo transceptor CAN</div>
+        <h3 class="buy-title">${esc(p.name)}</h3>
+        <p class="buy-desc">${esc(p.desc)}</p>
+        <ul class="buy-bullets">${p.bullets.map((b) => `<li>${esc(b)}</li>`).join('')}</ul>
+        <div class="buy-price">${esc(priceLabel(p))}</div>
+        <div class="buy-row">
+          <div class="qty"><button type="button" data-q="-1" data-id="${p.id}" aria-label="Menos">&minus;</button><span id="bq-${p.id}">${buyQty[p.id]}</span><button type="button" data-q="1" data-id="${p.id}" aria-label="Más">+</button></div>
+          <sp-button variant="accent" class="btn-primary" data-add="${p.id}">Añadir al carrito</sp-button>
+        </div>
+        <sp-button variant="secondary" outline class="buy-now" data-buynow="${p.id}">Comprar ahora</sp-button>
+      </div>`;
+  }
+  function setMain(i) {
+    const p = SHOP.products[0];
+    $('buyMain').src = p.gallery[i].src;
+    document.querySelectorAll('.thumb').forEach((t, k) => t.classList.toggle('on', k === i));
+  }
+
+  /* ---------- cabecera / contador ---------- */
+  function refreshCount() {
+    const c = $('cartCount'); c.textContent = count(); c.hidden = count() === 0;
+    c.classList.remove('bump'); void c.offsetWidth; c.classList.add('bump');
+  }
+  function toast(msg) {
+    const t = $('toast'); t.textContent = msg; t.classList.add('show');
+    clearTimeout(toast._t); toast._t = setTimeout(() => t.classList.remove('show'), 1800);
+  }
+
+  /* ---------- carrito ---------- */
+  function add(id, qty) {
+    const l = cart.find((x) => x.id === id);
+    if (l) l.qty = Math.min(99, l.qty + qty); else cart.push({ id, qty });
+    save(); refreshCount(); toast('Añadido: ' + byId(id).name);
+  }
+  function setQty(id, qty) {
+    const l = cart.find((x) => x.id === id); if (!l) return;
+    l.qty = Math.max(0, Math.min(99, qty));
+    if (l.qty === 0) cart = cart.filter((x) => x.id !== id);
+    save(); refreshCount(); render();
+  }
+
+  /* ---------- drawer ---------- */
+  function open(toStep) { if (toStep) step = toStep; render(); $('drawer').classList.add('open'); $('overlay').classList.add('open'); $('drawer').setAttribute('aria-hidden', 'false'); }
+  function close() { $('drawer').classList.remove('open'); $('overlay').classList.remove('open'); $('drawer').setAttribute('aria-hidden', 'true'); if (step === 4) step = 1; }
+
+  const bagIcon = '<svg viewBox="0 0 24 24" width="44" height="44" fill="none" stroke="currentColor" stroke-width="1.2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 4h2l2.4 11.2a1 1 0 0 0 1 .8h8.9a1 1 0 0 0 1-.76L20 8H6.2"/><circle cx="9.5" cy="20" r="1.3"/><circle cx="17.5" cy="20" r="1.3"/></svg>';
+
+  function render() {
+    const body = $('drawerBody'), foot = $('drawerFoot');
+    document.querySelectorAll('#steps span').forEach((sp) => {
+      const n = +sp.dataset.s; sp.className = (step === 4 ? 'done' : n === step ? 'on' : n < step ? 'done' : '');
+    });
+    $('drawerTitle').textContent = ['', 'Carrito', 'Datos de envío', 'Confirmar pedido', 'Pedido listo'][step];
+
+    if (step === 1) {
+      if (!cart.length) {
+        body.innerHTML = `<div class="empty">${bagIcon}<div>Tu carrito está vacío.</div><div>Elige un módulo para empezar.</div></div>`;
+        foot.innerHTML = `<sp-button variant="accent" class="btn-primary" data-act="shop">Ver productos</sp-button>`;
+      } else {
+        body.innerHTML = cart.map((l) => { const p = byId(l.id); return `<div class="line">
+          <div class="line-img"><img src="${esc(p.img)}" alt=""></div>
+          <div><div class="line-name">${esc(p.name)}</div><div class="line-sub">${esc(priceLabel(p))}</div>
+            <div class="line-ctrl"><div class="qty"><button type="button" data-act="dec" data-id="${p.id}">&minus;</button><span>${l.qty}</span><button type="button" data-act="inc" data-id="${p.id}">+</button></div>
+            <button class="rm" type="button" data-act="rm" data-id="${p.id}">Quitar</button></div></div></div>`; }).join('');
+        foot.innerHTML = `<div class="foot-row"><span>Total</span><strong>${esc(totalLabel())}</strong></div>
+          ${hasUnpriced() ? '<div class="line-sub">Los precios los confirmamos al revisar tu pedido.</div>' : ''}
+          <sp-button variant="accent" class="btn-primary" data-act="to2">Continuar con la compra</sp-button>`;
+      }
+    }
+
+    if (step === 2) {
+      const f = (k, label, type, full, ph) => `<div class="field ${full ? 'full' : ''}" data-f="${k}"><label for="c-${k}">${label}</label>${type === 'area' ? `<textarea id="c-${k}" rows="3" placeholder="${ph || ''}">${esc(customer[k])}</textarea>` : `<input id="c-${k}" type="${type}" value="${esc(customer[k])}" placeholder="${ph || ''}">`}<div class="msg"></div></div>`;
+      body.innerHTML = `<div class="form-grid">
+        ${f('nombre','Nombre completo','text',true)}
+        ${f('email','Correo','email',false,'tu@correo.com')}
+        ${f('telefono','Teléfono','tel',false)}
+        ${f('direccion','Dirección','text',true)}
+        ${f('ciudad','Ciudad','text',false)}
+        ${f('cp','Código postal','text',false)}
+        ${f('pais','País','text',true)}
+        ${f('notas','Notas del pedido (opcional)','area',true)}
+      </div>`;
+      foot.innerHTML = `<div class="foot-row"><span>Total</span><strong>${esc(totalLabel())}</strong></div>
+        <div class="foot-btns"><sp-button variant="secondary" outline data-act="to1">Volver</sp-button><sp-button variant="accent" class="btn-primary" data-act="to3">Revisar pedido</sp-button></div>`;
+    }
+
+    if (step === 3) {
+      body.innerHTML = `<div class="sum-block"><h4>Productos</h4>${cart.map((l) => { const p = byId(l.id); return `<div class="sum-line"><span>${l.qty} &times; <b>${esc(p.name)}</b></span><span>${p.price == null ? 'A confirmar' : esc(money(p.price * l.qty))}</span></div>`; }).join('')}
+          <div class="sum-line" style="border-top:1px solid #151518;margin-top:8px;padding-top:10px"><b>Total</b><b>${esc(totalLabel())}</b></div></div>
+        <div class="sum-block"><h4>Envío</h4>
+          <div class="sum-line"><b>${esc(customer.nombre)}</b></div>
+          <div class="sum-line">${esc(customer.direccion)}, ${esc(customer.cp)} ${esc(customer.ciudad)}, ${esc(customer.pais)}</div>
+          <div class="sum-line">${esc(customer.email)}${customer.telefono ? ' &middot; ' + esc(customer.telefono) : ''}</div>
+          ${customer.notas ? `<div class="sum-line">${esc(customer.notas)}</div>` : ''}</div>
+        <div class="line-sub">Al enviar se abrirá tu correo con el pedido listo. Lo revisaremos y te contactaremos para el pago y el envío.</div>`;
+      foot.innerHTML = `<div class="foot-btns"><sp-button variant="secondary" outline data-act="to2">Editar datos</sp-button><sp-button variant="accent" class="btn-primary" data-act="send">Enviar pedido</sp-button></div>`;
+    }
+
+    if (step === 4) {
+      body.innerHTML = `<div class="ok-box"><div class="tick">&#10003;</div><h3>Pedido preparado</h3>
+        <p>Se abrió tu correo con el resumen del pedido. <b>Pulsa enviar</b> en tu aplicación de correo para completarlo.</p>
+        <p>Si no se abrio, copia el resumen y envíalo a <b>${esc(SHOP.orderEmail)}</b>.</p></div>`;
+      foot.innerHTML = `<div class="foot-btns"><sp-button variant="secondary" outline data-act="copy">Copiar resumen</sp-button><sp-button variant="accent" class="btn-primary" data-act="done">Cerrar</sp-button></div>`;
+    }
+  }
+
+  /* ---------- validacion de datos ---------- */
+  function readForm() { ['nombre','email','telefono','direccion','ciudad','cp','pais','notas'].forEach((k) => { const el = $('c-' + k); if (el) customer[k] = el.value.trim(); }); }
+  function validate() {
+    readForm();
+    const req = { nombre:'Escribe tu nombre', email:'Escribe un correo válido', direccion:'Escribe tu dirección', ciudad:'Escribe tu ciudad', cp:'Escribe el código postal', pais:'Escribe el país' };
+    let ok = true;
+    document.querySelectorAll('.field').forEach((f) => { f.classList.remove('err'); f.querySelector('.msg').textContent = ''; });
+    Object.keys(req).forEach((k) => {
+      const bad = !customer[k] || (k === 'email' && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(customer[k]));
+      if (bad) { ok = false; const f = document.querySelector('[data-f="' + k + '"]'); f.classList.add('err'); f.querySelector('.msg').textContent = req[k]; }
+    });
+    return ok;
+  }
+
+  /* ---------- pedido por correo ---------- */
+  function orderText() {
+    const lines = cart.map((l) => { const p = byId(l.id); return '- ' + l.qty + ' x ' + p.name + (p.price == null ? ' (precio a confirmar)' : ' = ' + money(p.price * l.qty)); });
+    return ['NUEVO PEDIDO', '', 'PRODUCTOS', ...lines, '', 'TOTAL: ' + totalLabel(), '',
+      'DATOS DE ENVÍO', 'Nombre: ' + customer.nombre, 'Correo: ' + customer.email, 'Teléfono: ' + (customer.telefono || '-'),
+      'Dirección: ' + customer.direccion, 'Ciudad: ' + customer.ciudad + ' ' + customer.cp, 'País: ' + customer.pais,
+      (customer.notas ? 'Notas: ' + customer.notas : '')].join('\n');
+  }
+
+  /* ---------- eventos ---------- */
+  document.addEventListener('click', (e) => {
+    const q = e.target.closest('[data-q]');
+    if (q) { const id = q.dataset.id; buyQty[id] = Math.max(1, Math.min(99, (buyQty[id] || 1) + (+q.dataset.q))); $('bq-' + id).textContent = buyQty[id]; return; }
+    const addBtn = e.target.closest('[data-add]');
+    if (addBtn) { add(addBtn.dataset.add, buyQty[addBtn.dataset.add] || 1); return; }
+    const th = e.target.closest('[data-thumb]');
+    if (th) { setMain(+th.dataset.thumb); return; }
+    const bn = e.target.closest('[data-buynow]');
+    if (bn) { if (!cart.some((l) => l.id === bn.dataset.buynow)) add(bn.dataset.buynow, buyQty[bn.dataset.buynow] || 1); open(1); return; }
+    if (e.target.closest('#cartOpen')) { open(1); return; }
+    if (e.target.closest('#heroBuy')) { document.getElementById('comprar').scrollIntoView({ behavior: 'smooth' }); return; }
+    if (e.target.closest('#drawerClose') || e.target === $('overlay')) { close(); return; }
+
+    const a = e.target.closest('[data-act]'); if (!a) return;
+    const id = a.dataset.id;
+    switch (a.dataset.act) {
+      case 'inc': setQty(id, cart.find((l) => l.id === id).qty + 1); break;
+      case 'dec': setQty(id, cart.find((l) => l.id === id).qty - 1); break;
+      case 'rm': setQty(id, 0); break;
+      case 'shop': close(); document.getElementById('comprar').scrollIntoView({ behavior: 'smooth' }); break;
+      case 'to1': readForm(); step = 1; render(); break;
+      case 'to2': step = 2; render(); break;
+      case 'to3': if (validate()) { step = 3; render(); } break;
+      case 'send': {
+        const subject = 'Pedido módulo CAN - ' + customer.nombre;
+        window.location.href = 'mailto:' + SHOP.orderEmail + '?subject=' + encodeURIComponent(subject) + '&body=' + encodeURIComponent(orderText());
+        step = 4; render(); break;
+      }
+      case 'copy': (navigator.clipboard ? navigator.clipboard.writeText(orderText()) : Promise.reject()).then(() => toast('Resumen copiado')).catch(() => toast('No se pudo copiar')); break;
+      case 'done': cart = []; save(); refreshCount(); step = 1; close(); break;
+    }
+  });
+  document.addEventListener('keydown', (e) => { if (e.key === 'Escape') close(); });
+
+  renderBuy();
+  $('cartCount').textContent = count(); $('cartCount').hidden = count() === 0;
+})();
+</script>
 </body>
 </html>
